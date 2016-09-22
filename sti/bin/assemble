@@ -74,6 +74,42 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   clear_maven_repository
 
   popd &> /dev/null
+elif [ -f "$LOCAL_SOURCE_DIR/build.gradle" ]; then
+   echo "Building with gradle. $LOCAL_SOURCE_DIR/build.gradle found."
+
+   pushd $LOCAL_SOURCE_DIR &> /dev/null
+
+  if [ -z "$BUILDER_ARGS" ]; then
+    export BUILDER_ARGS="build -x test"
+    # TODO: Specify setting file with -c sss
+  fi
+
+  echo "Found gradle.build ... attempting to build with 'gradle -s ${BUILDER_ARGS}'"
+
+  echo "Gradle version:"
+  gradle --version
+
+  # Execute the actual build
+  gradle -s $BUILDER_ARGS
+
+  ERR=$?
+  if [ $ERR -ne 0 ]; then
+    echo "Aborting due to error code $ERR from Gradle build"
+    exit $ERR
+  fi
+
+  # Copy built artifacts (if any!) from the target/ directory
+  # to the $DEPLOY_DIR directory for later deployment
+  copy_artifacts build/libs
+
+
+  # clean up after maven
+  gradle clean
+#  if [ -d "$HOME/.m2/repository" ]; then
+#    rm -r "$HOME/.m2/repository"
+#  fi
+
+  popd &> /dev/null
 else
   # For binary builds
   copy_artifacts "." war ear rar jar
