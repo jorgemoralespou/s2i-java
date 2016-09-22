@@ -11,10 +11,6 @@ mkdir -p $LOCAL_SOURCE_DIR
 # Resulting artifact files will be deployed to /opt/openshift
 DEPLOY_DIR=/opt/openshift
 
-# the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
-# artifacts (*.war, *.jar)
-ARTIFACT_DIR=${ARTIFACT_DIR:-target}
-
 # Copy the source for compilation
 # TODO: Remove. Why do we need to move the source???
 if compgen -G "/tmp/src/*" >/dev/null; then
@@ -43,6 +39,10 @@ manage_incremental_build
 # If a pom.xml is present, this is a normal build scenario
 # so run maven.
 if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
+  # the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
+  # artifacts (*.war, *.jar)
+  ARTIFACT_DIR=${ARTIFACT_DIR:-target}
+
   pushd $LOCAL_SOURCE_DIR &> /dev/null
 
   MAVEN_ARGS=${MAVEN_ARGS--e -Popenshift -DskipTests -Dcom.redhat.xpaas.repo.redhatga package}
@@ -66,8 +66,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   # Copy built artifacts (if any!) from the target/ directory
   # (or $ARTIFACT_DIR if specified)
-  # to the $JBOSS_HOME/standalone/deployments/ directory for
-  # later deployment
+  # to the $DEPLOY_DIR directory for later deployment
   copy_artifacts "$ARTIFACT_DIR" war ear rar jar
 
   # optionally clear the local maven repository after the build
@@ -75,9 +74,13 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   popd &> /dev/null
 elif [ -f "$LOCAL_SOURCE_DIR/build.gradle" ]; then
-   echo "Building with gradle. $LOCAL_SOURCE_DIR/build.gradle found."
+  # the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
+  # artifacts (*.war, *.jar)
+  ARTIFACT_DIR=${ARTIFACT_DIR:-build/libs}
 
-   pushd $LOCAL_SOURCE_DIR &> /dev/null
+  echo "Building with gradle. $LOCAL_SOURCE_DIR/build.gradle found."
+
+  pushd $LOCAL_SOURCE_DIR &> /dev/null
 
   if [ -z "$BUILDER_ARGS" ]; then
     export BUILDER_ARGS="build -x test"
@@ -99,8 +102,9 @@ elif [ -f "$LOCAL_SOURCE_DIR/build.gradle" ]; then
   fi
 
   # Copy built artifacts (if any!) from the target/ directory
+  # (or $ARTIFACT_DIR if specified)
   # to the $DEPLOY_DIR directory for later deployment
-  copy_artifacts build/libs
+  copy_artifacts "$ARTIFACT_DIR" war ear rar jar
 
 
   # clean up after maven
@@ -112,7 +116,11 @@ elif [ -f "$LOCAL_SOURCE_DIR/build.gradle" ]; then
   popd &> /dev/null
 else
   # For binary builds
-  copy_artifacts "." war ear rar jar
+  # the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
+  # artifacts (*.war, *.jar)
+  ARTIFACT_DIR=${ARTIFACT_DIR:-.}
+
+  copy_artifacts "$ARTIFACT_DIR" war ear rar jar
 fi
 
 # As Microservices you should only have 1 fat jar
