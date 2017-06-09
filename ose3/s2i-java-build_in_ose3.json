@@ -112,6 +112,12 @@
                "required": true
             },
             {
+               "description": "Jar file suffix to use to locate the generated artifact to use (e.g. xxxxx${APP_SUFFIX}.jar)",
+               "name": "APP_SUFFIX",
+               "value": "",
+               "displayName": "Jar file suffix"
+            },
+            {
                "description": "Custom hostname for service routes.  Leave blank for default hostname, e.g.: <application-name>.<project>.<default-domain-suffix>",
                "name": "APPLICATION_HOSTNAME",
                "displayName": "Application hostname"
@@ -188,7 +194,13 @@
                         "from": {
                            "kind": "ImageStreamTag",
                            "name": "s2i-java:latest"
-                        }
+                        },
+                        "env": [
+                          {
+                            "name": "APP_SUFFIX",
+                            "value": "${APP_SUFFIX}"
+                          }
+                        ]
                      }
                   },
                   "output": {
@@ -354,6 +366,12 @@
                "required": true
             },
             {
+               "description": "Jar file suffix to use to locate the generated artifact to use (e.g. xxxxx${APP_SUFFIX}.jar)",
+               "name": "APP_SUFFIX",
+               "value": "",
+               "displayName": "Jar file suffix"
+            },
+            {
                "description": "Custom hostname for service routes.  Leave blank for default hostname, e.g.: <application-name>.<project>.<default-domain-suffix>",
                "name": "APPLICATION_HOSTNAME",
                "displayName": "Application hostname"
@@ -426,7 +444,13 @@
                         "from": {
                            "kind": "ImageStreamTag",
                            "name": "s2i-java:latest"
-                        }
+                        },
+                        "env": [
+                          {
+                            "name": "APP_SUFFIX",
+                            "value": "${APP_SUFFIX}"
+                          }
+                        ]
                      }
                   },
                   "output": {
