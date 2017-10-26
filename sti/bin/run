@@ -10,5 +10,5 @@
 cd /opt/openshift && \
 exec java \
     -Djava.security.egd=file:/dev/./urandom \
-    -jar /opt/openshift/app.jar \
-    $APP_OPTIONS
+    $APP_OPTIONS \
+    -jar /opt/openshift/app.jar
